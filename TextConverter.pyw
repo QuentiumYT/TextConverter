@@ -2,7 +2,7 @@ import os, sys, ctypes, urllib.request
 from tkinter import *
 from tkinter.messagebox import *
 
-__version__ = 2
+__version__ = 3
 __filename__ = "TextConverter"
 __basename__ = os.path.basename(sys.argv[0])
 __savepath__ = os.path.join(os.environ['APPDATA'], "QuentiumPrograms")
@@ -36,223 +36,108 @@ if connection == True:
 
 __filename__ = __filename__ + " V" + str(__version__)
 
-import re, random
+import re, random, unidecode
 from tkinter.filedialog import *
 from tkinter import *
 
-# Function change text in Textbox #
+Morse = {'A': '.-', 'B': '-...', 'C': '-.-.',
+         'D': '-..', 'E': '.', 'F': '..-.',
+         'G': '--.', 'H': '....', 'I': '..',
+         'J': '.---', 'K': '-.-', 'L': '.-..',
+         'M': '--', 'N': '-.', 'O': '---',
+         'P': '.--.', 'Q': '--.-', 'R': '.-.',
+         'S': '...', 'T': '-', 'U': '..-',
+         'V': '...-', 'W': '.--', 'X': '-..-',
+         'Y': '-.--', 'Z': '--..',
 
-def uppercase(match):
-    return match.group(0).upper()
+         '0': '-----', '1': '.----', '2': '..---',
+         '3': '...--', '4': '....-', '5': '.....',
+         '6': '-....', '7': '--...', '8': '---..',
+         '9': '----.',
+
+         ".": ".-.-.-", ",": "--..--", "=": "-...-",
+         ":": "---...", "?": "..--..", "!": "-.-.--",
+         "-": "-....-", "/": "-..-.", "+": ".-.-.",
+         ";": "-.-.-.", "(": "-.--.", ")": "-.--.-",
+         "_": "..--.-", '"': ".-..-.", "@": ".--.-.",
+         "'": ".----.", "&": ".-...", " ": "/",
+         }
+
+Morse_reversed = {value: key for key, value in Morse.items()}
+txtboxfocus = ""
+f_name = None
+
+def append_box(value):
+    Text2.delete("1.0", END)
+    Text2.insert(END, value)
 
 def check_empty():
-    if Text1.get("1.0", END).replace("\n", "") is "":return ""
-    else:return Text1.get("1.0", END).replace("\n", "")
+    return "" if Text1.get("1.0", END) is "" else Text1.get("1.0", END)
 
-def change_t_b():
-    value = sentence_to_binary(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def sentence_to_binary():
+    return append_box([bin(ord(x))[2:].zfill(8) for x in check_empty()])
 
-def change_t_h():
-    value = sentence_to_hexadecimal(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def sentence_to_hexadecimal():
+    return append_box(" ".join("{:02x}".format(ord(x)) for x in check_empty()))
 
-def change_t_o():
-    value = sentence_to_octal(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def sentence_to_octal():
+    return append_box([oct(ord(x))[2:].zfill(3) for x in check_empty()])
 
-def change_t_a():
-    value = sentence_to_ascii(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def sentence_to_ascii():
+    return append_box([ord(x) for x in check_empty()])
 
-def change_b_t():
-    value = binary_to_sentence(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def binary_to_sentence():
+    return append_box("".join(chr(int(check_empty().replace(" ", "")[i * 8:i * 8 + 8], 2)) for i in range(len(check_empty().replace(" ", "")) // 8)))
 
-def change_h_t():
-    value = hexadecimal_to_sentence(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def hexadecimal_to_sentence():
+    return append_box("".join([chr(int("".join(x), 16)) for x in zip(check_empty().replace(" ", "")[0::2], check_empty().replace(" ", "")[1::2])]))
 
-def change_o_t():
-    value = octal_to_sentence(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def octal_to_sentence():
+    return append_box("".join([chr(int(x, 8)) for x in check_empty().split()]))
 
-def change_a_t():
-    value = ascii_to_sentence(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
+def ascii_to_sentence():
+    return append_box("".join([chr(int(x)) for x in check_empty().split()]))
 
-def change_t_m():
-    value = sentence_to_morse(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_m_t():
-    value = morse_to_sentence(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_t_l():
-    value = sentence_to_lowercase(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_t_u():
-    value = sentence_to_uppercase(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_t_r():
-    value = sentence_reverse(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_c_w():
-    value = capitalize_words(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_c_t():
-    value = capitalize_sentence(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-def change_t_0():
-    value = sentence_randomcase(check_empty())
-    Text2.delete("1.0", END)
-    Text2.insert(END, value)
-
-# Function which convert sentence #
-
-Morse = {'A': '.-',     'B': '-...',   'C': '-.-.', 
-        'D': '-..',    'E': '.',      'F': '..-.',
-        'G': '--.',    'H': '....',   'I': '..',
-        'J': '.---',   'K': '-.-',    'L': '.-..',
-        'M': '--',     'N': '-.',     'O': '---',
-        'P': '.--.',   'Q': '--.-',   'R': '.-.',
-     	'S': '...',    'T': '-',      'U': '..-',
-        'V': '...-',   'W': '.--',    'X': '-..-',
-        'Y': '-.--',   'Z': '--..',
-
-        '0': '-----',  '1': '.----',  '2': '..---',
-        '3': '...--',  '4': '....-',  '5': '.....',
-        '6': '-....',  '7': '--...',  '8': '---..',
-        '9': '----.',
-
-        "." : ".-.-.-", "," : "--..--", "=" : "-...-",
-        ":" : "---...", "?" : "..--..", "!" : "-.-.--",
-        "-" : "-....-", "/" : "-..-.", "+" : ".-.-.",
-        ";" : "-.-.-.", "(" : "-.--.", ")" : "-.--.-",
-        "_" : "..--.-", '"' : ".-..-.", "@" : ".--.-.",
-        "'" : ".----.", "&" : ".-...", " " : "/",
-        }
-Morse_reversed = {value:key for key,value in Morse.items()}
-
-def sentence_to_binary(text):
-    sentence_bin = [bin(ord(x))[2:].zfill(8) for x in text]
-    return sentence_bin
-
-def sentence_to_hexadecimal(text):
-    sentence_hexa = " ".join("{:02x}".format(ord(x)) for x in text)
-    return sentence_hexa
-
-def sentence_to_octal(text):
-    sentence_octal = [oct(ord(x))[2:].zfill(3) for x in text]
-    return sentence_octal
-
-def sentence_to_ascii(text):
-    sentence_ascii = [ord(x) for x in text]
-    return sentence_ascii
-
-def binary_to_sentence(text):
-    sentence_bin = "".join(chr(int(text.replace(" ", "")[i*8:i*8+8], 2)) for i in range(len(text.replace(" ", ""))//8))
-    return sentence_bin
-
-def hexadecimal_to_sentence(text):
-    sentence_hexa = "".join([chr(int("".join(x), 16)) for x in zip(text.replace(" ", "")[0::2], text.replace(" ", "")[1::2])])
-    return sentence_hexa
-
-def octal_to_sentence(text):
-    sentence_octal1 = ""
-    for letter in text:
-        sentence_octal1 += letter.replace(" ", "\\")
-    sentence_octal2 = "\\" + sentence_octal1
-    sentence_octal3 = "br'" + sentence_octal2 + "'".encode("utf-8").decode("unicode-escape")
-    sentence_octal4 = sentence_octal3.encode("utf-8").decode("unicode-escape")
-    sentence_octal = sentence_octal4.replace("br'", "")[:-1]
-    return sentence_octal
-
-def ascii_to_sentence(text):
-    sentence_ascii = "".join(chr(int(x)) for x in text.split())
-    return sentence_ascii
-
-def sentence_to_morse(text):
+def sentence_to_morse():
     sentence_morse = ""
-    for char in text[:]:
-        if char == "é":
-            char = "e"
-        elif char == "è":
-            char = "e"
-        elif char == "ê":
-            char = "e"
-        elif char == "à":
-            char = "a"
-        elif char == "â":
-            char = "a"
-        elif char == "ù":
-            char = "u"
-        elif char == "ç":
-            char = "c"
-        try:
-            sentence_morse += Morse[char.upper()] + "   "
-        except:
-            sentence_morse += "?"
-    return sentence_morse
+    for char in check_empty():
+        char = unidecode.unidecode(char)
+        try:sentence_morse += Morse[char.upper()] + "   "
+        except:sentence_morse += "?"
+    return append_box(sentence_morse)
 
-def morse_to_sentence(text):
-    sentence_morse = "".join(Morse_reversed.get(x) for x in text.split())
+def morse_to_sentence():
+    sentence_morse = "".join(Morse_reversed.get(x) for x in check_empty().split())
     sentence_morse = sentence_morse.lower()
     if not sentence_morse == "":
         sentence_morse = sentence_morse[0].upper() + sentence_morse[1:]
-    return sentence_morse
+    return append_box(sentence_morse)
 
-def sentence_to_lowercase(text):
-    sentence_lower = text.lower()
-    return sentence_lower
+def sentence_to_lowercase():
+    return append_box(check_empty().lower()[:-2])
 
-def sentence_to_uppercase(text):
-    sentence_upper = text.upper()
-    return sentence_upper
+def sentence_to_uppercase():
+    return append_box(check_empty().upper()[:-2])
 
-def sentence_reverse(text):
-    sentence_reverse = text[::-1]
-    return sentence_reverse
+def sentence_reverse():
+    return append_box(check_empty()[-2::-1])
 
-def capitalize_words(text):
-    sentence_lower = " ".join(x[0].upper() + x[1:] for x in text.split())
-    return sentence_lower
+def capitalize_words():
+    temp = " ".join(x[0].upper() + x[1:] for x in check_empty().split(" "))
+    return append_box("\n".join(x[0].upper() + x[1:] for x in temp[:-2].split("\n")))
 
-def capitalize_sentence(text):
-    sentence_lower = re.sub('^([a-z])|[\.|\?|\!]\s*([a-z])|\s+([a-z])(?=\.)', uppercase, text)
-    return sentence_lower
+def capitalize_sentence():
+    def repl_(match):
+        return match.group(0).upper()
+    return append_box(re.sub(r'^([a-z])|[\.|\?|\!|\n]\s*([a-z])|\s+([a-z])(?=\.)', repl_, check_empty()[:-2]))
 
-def sentence_randomcase(text):
+def sentence_randomcase():
     sentence_randomcase = ""
-    for char in text:
-        maj = random.sample(range(100), 1)
-        number = str(maj.pop())
-        if int(number) < 50:
-            sentence_randomcase += char.lower()
-        else:
-            sentence_randomcase += char.upper()
-    return sentence_randomcase
+    for char in check_empty():
+        number = random.randint(0, 1)
+        if number == 0:sentence_randomcase += char.lower()
+        else:sentence_randomcase += char.upper()
+    return append_box(sentence_randomcase[:-2])
 
 # File menu #
 
@@ -260,7 +145,7 @@ def file_openfast(event):
     file_open()
 
 def file_open():
-    fname = askopenfilename(parent=textconverter, filetypes=[("Fichiers texte","*.txt")])
+    fname = askopenfilename(parent=textconverter, filetypes=[("Fichiers texte", "*.txt"),("All Files", "*.*")])
     if fname:
         try:
             filecontains = open(fname, "r", encoding="utf-8").read()
@@ -275,11 +160,11 @@ def file_savefast(event):
 def file_save():
     global f_name
     contents = Text2.get(1.0, "end-1c")
-    try:
-        with open(f_name, 'w', encoding="utf-8") as file:
+    if f_name is not None:
+        with open(f_name, "w", encoding="utf-8") as file:
             file.write(contents)
             file.close()
-    except:
+    else:
         file_saveas()
 
 def file_saveasfast(event):
@@ -287,12 +172,12 @@ def file_saveasfast(event):
 
 def file_saveas():
     global f_name
-    f = asksaveasfile(mode='w', defaultextension=".txt", filetypes=[("Fichiers texte","*.txt"), ("Fichiers yml","*.yml")])
+    contents = Text2.get(1.0, "end-1c")
+    f = asksaveasfile(mode="w", defaultextension=".txt", filetypes=[("Fichiers texte", "*.txt"),("All Files", "*.*")])
     if f is None:
         return
     f_name = f.name
-    text2save = str(Text2.get(1.0, END))
-    f.write(text2save)
+    f.write(contents)
     f.close()
 
 # Edit menu #
@@ -352,10 +237,10 @@ def edit_delall():
 # More menu #
 
 def more_website():
-    os.system("start chrome.exe quentium.fr")
+    os.system("start chrome.exe https://quentium.fr")
 
 def more_progs():
-    os.system("start chrome.exe quentium.fr/programs/")
+    os.system("start chrome.exe https://quentium.fr/programs/")
 
 def more_donation():
     os.system("start chrome.exe https://www.paypal.me/QLienhardt")
@@ -373,12 +258,13 @@ def more_propos():
     win_propos.update_idletasks()
     x = (win_propos.winfo_screenwidth() - width) // 2
     y = (win_propos.winfo_screenheight() - height) // 2
-    win_propos.geometry("{}x{}+{}+{}".format(width , height, int(x), int(y)))
+    win_propos.geometry("{}x{}+{}+{}".format(width, height, int(x), int(y)))
     if os.path.exists(__iconpath__):
         win_propos.iconbitmap(__iconpath__)
     win_propos.title("À propos")
     win_propos.resizable(width=False, height=False)
-    Label(win_propos, text="Programme crée et designé par Quentium. \n Pour plus d'informations, \n merci de me contacter par e-mail : \n quentin.lienhardt@gmail.com", font=font1, fg="black", bg="lightgray").pack(pady=20)
+    Label(win_propos, text="Programme créé et designé par Quentium. \nPour plus d'informations, \nmerci de me contacter par e-mail : \npro@quentium.fr", font=font1, fg="black", bg="lightgray").pack(pady=20)
+
     def close():
         win_propos.destroy()
     Buttonpropos = Button(win_propos, pady="0", relief=GROOVE, fg="black", command=close, font=font2, text="Fermer")
@@ -399,7 +285,10 @@ textconverter.protocol("WM_DELETE_WINDOW", onclose)
 if os.path.exists(__iconpath__):
     textconverter.iconbitmap(__iconpath__)
 font1 = "-family {Berlin Sans FB Demi} -size 15 -weight bold -slant roman -underline 0 -overstrike 0"
-font2 = "-family {Berlin Sans FB Demi} -size 20 -weight bold -slant roman -underline 0 -overstrike 0"
+if textconverter.winfo_screenheight() >= 1080:
+    font2 = "-family {Berlin Sans FB Demi} -size 20 -weight bold -slant roman -underline 0 -overstrike 0"
+else:
+    font2 = "-family {Berlin Sans FB Demi} -size 17 -weight bold -slant roman -underline 0 -overstrike 0"
 font3 = "-family {Berlin Sans FB Demi} -size 30 -weight bold -slant roman -underline 0 -overstrike 0"
 
 # Menubar #
@@ -414,8 +303,8 @@ menu1.add_command(label="Enregister", accelerator="Ctrl+S", command=file_save)
 textconverter.bind("<Control-s>", file_savefast)
 textconverter.bind("<Control-S>", file_savefast)
 menu1.add_command(label="Enregister sous", accelerator="Ctrl+Alt+S", command=file_saveas)
-textconverter.bind("<Control-Alt-s>", file_saveasfast)
-textconverter.bind("<Control-Alt-S>", file_saveasfast)
+textconverter.bind("<Control-Shift-s>", file_saveasfast)
+textconverter.bind("<Control-Shift-S>", file_saveasfast)
 menu1.add_separator()
 menu1.add_command(label="Quitter", accelerator="Alt+F4", command=onclose)
 
@@ -440,7 +329,7 @@ menu3 = Menu(menubar, tearoff=0)
 menubar.add_cascade(label="Plus", menu=menu3)
 menu3.add_command(label="Site web", command=more_website)
 menu3.add_command(label="Autres programmes", command=more_progs)
-menu3.add_command(label="Donnation", command=more_donation)
+menu3.add_command(label="Donation", command=more_donation)
 menu3.add_separator()
 menu3.add_command(label="À propos", accelerator="F1", command=more_propos)
 textconverter.bind("<F1>", more_proposfast)
@@ -451,6 +340,9 @@ textconverter.config(menu=menubar)
 def get_focus(x):
     global txtboxfocus
     txtboxfocus = x
+
+def get_size(size):
+    return (textconverter.winfo_height() * size) / 1000
 
 Text1 = Text(textconverter)
 Text1.place(relx=0.01, rely=0.02, relheight=0.44, relwidth=0.65)
@@ -495,11 +387,11 @@ Label1.configure(highlightcolor="black")
 Label1.configure(text="Convertir :")
 
 Button1 = Button(textconverter)
-Button1.place(relx=0.74, rely=0.02, height=38, width=428)
+Button1.place(relx=0.74, rely=0.02, height=get_size(38), width=get_size(428))
 Button1.configure(activebackground="#d9d9d9")
 Button1.configure(activeforeground="#000000")
 Button1.configure(background="#ffffff")
-Button1.configure(command=change_t_b)
+Button1.configure(command=sentence_to_binary)
 Button1.configure(disabledforeground="#a3a3a3")
 Button1.configure(font=font2)
 Button1.configure(foreground="#000000")
@@ -511,11 +403,11 @@ Button1.configure(text="Convertir Texte en Binaire")
 Button1.configure(width=30)
 
 Button2 = Button(textconverter)
-Button2.place(relx=0.74, rely=0.08, height=38, width=428)
+Button2.place(relx=0.74, rely=0.08, height=get_size(38), width=get_size(428))
 Button2.configure(activebackground="#d9d9d9")
 Button2.configure(activeforeground="#000000")
 Button2.configure(background="#ffffff")
-Button2.configure(command=change_t_h)
+Button2.configure(command=sentence_to_hexadecimal)
 Button2.configure(disabledforeground="#a3a3a3")
 Button2.configure(font=font2)
 Button2.configure(foreground="#000000")
@@ -527,11 +419,11 @@ Button2.configure(text="Convertir Texte en Hexadécimal")
 Button2.configure(width=30)
 
 Button3 = Button(textconverter)
-Button3.place(relx=0.74, rely=0.14, height=38, width=428)
+Button3.place(relx=0.74, rely=0.14, height=get_size(38), width=get_size(428))
 Button3.configure(activebackground="#d9d9d9")
 Button3.configure(activeforeground="#000000")
 Button3.configure(background="#ffffff")
-Button3.configure(command=change_t_o)
+Button3.configure(command=sentence_to_octal)
 Button3.configure(disabledforeground="#a3a3a3")
 Button3.configure(font=font2)
 Button3.configure(foreground="#000000")
@@ -543,11 +435,11 @@ Button3.configure(text="Convertir Texte en Octal")
 Button3.configure(width=30)
 
 Button4 = Button(textconverter)
-Button4.place(relx=0.74, rely=0.2, height=38, width=428)
+Button4.place(relx=0.74, rely=0.2, height=get_size(38), width=get_size(428))
 Button4.configure(activebackground="#d9d9d9")
 Button4.configure(activeforeground="#000000")
 Button4.configure(background="#ffffff")
-Button4.configure(command=change_t_a)
+Button4.configure(command=sentence_to_ascii)
 Button4.configure(disabledforeground="#a3a3a3")
 Button4.configure(font=font2)
 Button4.configure(foreground="#000000")
@@ -559,11 +451,11 @@ Button4.configure(text="Convertir Texte en ASCII")
 Button4.configure(width=30)
 
 Button5 = Button(textconverter)
-Button5.place(relx=0.74, rely=0.26, height=38, width=428)
+Button5.place(relx=0.74, rely=0.26, height=get_size(38), width=get_size(428))
 Button5.configure(activebackground="#d9d9d9")
 Button5.configure(activeforeground="#000000")
 Button5.configure(background="#ffffff")
-Button5.configure(command=change_b_t)
+Button5.configure(command=binary_to_sentence)
 Button5.configure(disabledforeground="#a3a3a3")
 Button5.configure(font=font2)
 Button5.configure(foreground="#000000")
@@ -575,11 +467,11 @@ Button5.configure(text="Convertir Binaire en Texte")
 Button5.configure(width=30)
 
 Button6 = Button(textconverter)
-Button6.place(relx=0.74, rely=0.32, height=38, width=428)
+Button6.place(relx=0.74, rely=0.32, height=get_size(38), width=get_size(428))
 Button6.configure(activebackground="#d9d9d9")
 Button6.configure(activeforeground="#000000")
 Button6.configure(background="#ffffff")
-Button6.configure(command=change_h_t)
+Button6.configure(command=hexadecimal_to_sentence)
 Button6.configure(disabledforeground="#a3a3a3")
 Button6.configure(font=font2)
 Button6.configure(foreground="#000000")
@@ -591,11 +483,11 @@ Button6.configure(text="Convertir Hexadécimal en Texte")
 Button6.configure(width=30)
 
 Button7 = Button(textconverter)
-Button7.place(relx=0.74, rely=0.38, height=38, width=428)
+Button7.place(relx=0.74, rely=0.38, height=get_size(38), width=get_size(428))
 Button7.configure(activebackground="#d9d9d9")
 Button7.configure(activeforeground="#000000")
 Button7.configure(background="#ffffff")
-Button7.configure(command=change_o_t)
+Button7.configure(command=octal_to_sentence)
 Button7.configure(disabledforeground="#a3a3a3")
 Button7.configure(font=font2)
 Button7.configure(foreground="#000000")
@@ -607,11 +499,11 @@ Button7.configure(text="Convertir Octal en Texte")
 Button7.configure(width=30)
 
 Button8 = Button(textconverter)
-Button8.place(relx=0.74, rely=0.44, height=38, width=428)
+Button8.place(relx=0.74, rely=0.44, height=get_size(38), width=get_size(428))
 Button8.configure(activebackground="#d9d9d9")
 Button8.configure(activeforeground="#000000")
 Button8.configure(background="#ffffff")
-Button8.configure(command=change_a_t)
+Button8.configure(command=ascii_to_sentence)
 Button8.configure(disabledforeground="#a3a3a3")
 Button8.configure(font=font2)
 Button8.configure(foreground="#000000")
@@ -623,11 +515,11 @@ Button8.configure(text="Convertir ASCII en Texte")
 Button8.configure(width=30)
 
 Button9 = Button(textconverter)
-Button9.place(relx=0.74, rely=0.52, height=38, width=428)
+Button9.place(relx=0.74, rely=0.52, height=get_size(38), width=get_size(428))
 Button9.configure(activebackground="#d9d9d9")
 Button9.configure(activeforeground="#000000")
 Button9.configure(background="#ffffff")
-Button9.configure(command=change_t_m)
+Button9.configure(command=sentence_to_morse)
 Button9.configure(disabledforeground="#a3a3a3")
 Button9.configure(font=font2)
 Button9.configure(foreground="#000000")
@@ -639,11 +531,11 @@ Button9.configure(text="Convertir Texte en Morse")
 Button9.configure(width=30)
 
 Button10 = Button(textconverter)
-Button10.place(relx=0.74, rely=0.58, height=38, width=428)
+Button10.place(relx=0.74, rely=0.58, height=get_size(38), width=get_size(428))
 Button10.configure(activebackground="#d9d9d9")
 Button10.configure(activeforeground="#000000")
 Button10.configure(background="#ffffff")
-Button10.configure(command=change_m_t)
+Button10.configure(command=morse_to_sentence)
 Button10.configure(disabledforeground="#a3a3a3")
 Button10.configure(font=font2)
 Button10.configure(foreground="#000000")
@@ -655,11 +547,11 @@ Button10.configure(text="Convertir Morse en Texte")
 Button10.configure(width=30)
 
 Button11 = Button(textconverter)
-Button11.place(relx=0.74, rely=0.64, height=38, width=428)
+Button11.place(relx=0.74, rely=0.64, height=get_size(38), width=get_size(428))
 Button11.configure(activebackground="#d9d9d9")
 Button11.configure(activeforeground="#000000")
 Button11.configure(background="#ffffff")
-Button11.configure(command=change_t_l)
+Button11.configure(command=sentence_to_lowercase)
 Button11.configure(disabledforeground="#a3a3a3")
 Button11.configure(font=font2)
 Button11.configure(foreground="#000000")
@@ -671,11 +563,11 @@ Button11.configure(text="Convertir Texte en Minuscule")
 Button11.configure(width=30)
 
 Button12 = Button(textconverter)
-Button12.place(relx=0.74, rely=0.70, height=38, width=428)
+Button12.place(relx=0.74, rely=0.70, height=get_size(38), width=get_size(428))
 Button12.configure(activebackground="#d9d9d9")
 Button12.configure(activeforeground="#000000")
 Button12.configure(background="#ffffff")
-Button12.configure(command=change_t_u)
+Button12.configure(command=sentence_to_uppercase)
 Button12.configure(disabledforeground="#a3a3a3")
 Button12.configure(font=font2)
 Button12.configure(foreground="#000000")
@@ -687,11 +579,11 @@ Button12.configure(text="Convertir Texte en Majuscule")
 Button12.configure(width=30)
 
 Button13 = Button(textconverter)
-Button13.place(relx=0.74, rely=0.76, height=38, width=428)
+Button13.place(relx=0.74, rely=0.76, height=get_size(38), width=get_size(428))
 Button13.configure(activebackground="#d9d9d9")
 Button13.configure(activeforeground="#000000")
 Button13.configure(background="#ffffff")
-Button13.configure(command=change_t_r)
+Button13.configure(command=sentence_reverse)
 Button13.configure(disabledforeground="#a3a3a3")
 Button13.configure(font=font2)
 Button13.configure(foreground="#000000")
@@ -703,11 +595,11 @@ Button13.configure(text="Texte inversé")
 Button13.configure(width=30)
 
 Button14 = Button(textconverter)
-Button14.place(relx=0.74, rely=0.82, height=38, width=428)
+Button14.place(relx=0.74, rely=0.82, height=get_size(38), width=get_size(428))
 Button14.configure(activebackground="#d9d9d9")
 Button14.configure(activeforeground="#000000")
 Button14.configure(background="#ffffff")
-Button14.configure(command=change_c_w)
+Button14.configure(command=capitalize_words)
 Button14.configure(disabledforeground="#a3a3a3")
 Button14.configure(font=font2)
 Button14.configure(foreground="#000000")
@@ -719,11 +611,11 @@ Button14.configure(text="Majuscule Mots")
 Button14.configure(width=30)
 
 Button15 = Button(textconverter)
-Button15.place(relx=0.74, rely=0.88, height=38, width=428)
+Button15.place(relx=0.74, rely=0.88, height=get_size(38), width=get_size(428))
 Button15.configure(activebackground="#d9d9d9")
 Button15.configure(activeforeground="#000000")
 Button15.configure(background="#ffffff")
-Button15.configure(command=change_c_t)
+Button15.configure(command=capitalize_sentence)
 Button15.configure(disabledforeground="#a3a3a3")
 Button15.configure(font=font2)
 Button15.configure(foreground="#000000")
@@ -735,11 +627,11 @@ Button15.configure(text="Majuscule Texte")
 Button15.configure(width=30)
 
 Button16 = Button(textconverter)
-Button16.place(relx=0.74, rely=0.94, height=38, width=428)
+Button16.place(relx=0.74, rely=0.94, height=get_size(38), width=get_size(428))
 Button16.configure(activebackground="#d9d9d9")
 Button16.configure(activeforeground="#000000")
 Button16.configure(background="#ffffff")
-Button16.configure(command=change_t_0)
+Button16.configure(command=sentence_randomcase)
 Button16.configure(disabledforeground="#a3a3a3")
 Button16.configure(font=font2)
 Button16.configure(foreground="#000000")
@@ -751,7 +643,7 @@ Button16.configure(text="Majuscule aléatoire")
 Button16.configure(width=30)
 
 Canvas1 = Canvas(textconverter)
-Canvas1.place(relx=0.74, rely=0.5, relheight=0.0, relwidth=0.222)
+Canvas1.place(relx=0.74, rely=0.5, relheight=0.0001, relwidth=0.222)
 Canvas1.configure(background="white")
 Canvas1.configure(borderwidth="0")
 Canvas1.configure(insertbackground="black")
