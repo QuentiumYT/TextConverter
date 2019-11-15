@@ -11,11 +11,11 @@
 
 >#### Convert text or sentence with various possible options (Bases, Morse code, Types of text).
 <br>
-![](https://quentium.fr/programs/Github/TextConverter.gif)
+<p align="center"><img src="https://quentium.fr/programs/Github/TextConverter.gif"></p>
 
 ## 📥 Installation
 
-- Download the source code [here](https://github.com/QuentiumYT/TextConverter/archive/master.zip) and run `TextConverter.pyw` on your computer (you will need socket, platform, psutil, wmi and ctypes modules)
+- Download the source code [here](https://github.com/QuentiumYT/TextConverter/archive/master.zip) and run `TextConverter.pyw` on your computer (no specific module required)
 - Download the 64bits compiled executable [here](https://quentium.fr/download.php?file=TextConverter.exe)!
 - Download the 32bits compiled executable [here](https://quentium.fr/download.php?file=TextConverter-32.exe)!
 
