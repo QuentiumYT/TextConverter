@@ -60,8 +60,8 @@ Morse = {'A': '.-', 'B': '-...', 'C': '-.-.',
          "-": "-....-", "/": "-..-.", "+": ".-.-.",
          ";": "-.-.-.", "(": "-.--.", ")": "-.--.-",
          "_": "..--.-", '"': ".-..-.", "@": ".--.-.",
-         "'": ".----.", "&": ".-...", " ": "/",
-         }
+         "'": ".----.", "&": ".-...", " ": "/"
+}
 
 Morse_reversed = {value: key for key, value in Morse.items()}
 txtboxfocus = ""
@@ -71,69 +71,66 @@ def append_box(value):
     Text2.delete("1.0", END)
     Text2.insert(END, value)
 
-def check_empty():
-    return "" if Text1.get("1.0", END) is "" else Text1.get("1.0", END)
-
 def sentence_to_binary():
-    return append_box([bin(ord(x))[2:].zfill(8) for x in check_empty()])
+    return append_box([bin(ord(x))[2:].zfill(8) for x in Text1.get("1.0", END)])
 
 def sentence_to_hexadecimal():
-    return append_box(" ".join("{:02x}".format(ord(x)) for x in check_empty()))
+    return append_box(" ".join("{:02x}".format(ord(x)) for x in Text1.get("1.0", END)))
 
 def sentence_to_octal():
-    return append_box([oct(ord(x))[2:].zfill(3) for x in check_empty()])
+    return append_box([oct(ord(x))[2:].zfill(3) for x in Text1.get("1.0", END)])
 
 def sentence_to_ascii():
-    return append_box([ord(x) for x in check_empty()])
+    return append_box([ord(x) for x in Text1.get("1.0", END)])
 
 def binary_to_sentence():
-    return append_box("".join(chr(int(check_empty().replace(" ", "")[i * 8:i * 8 + 8], 2)) for i in range(len(check_empty().replace(" ", "")) // 8)))
+    return append_box("".join(chr(int(Text1.get("1.0", END).replace(" ", "")[i * 8:i * 8 + 8], 2)) for i in range(len(Text1.get("1.0", END).replace(" ", "")) // 8)))
 
 def hexadecimal_to_sentence():
-    return append_box("".join([chr(int("".join(x), 16)) for x in zip(check_empty().replace(" ", "")[0::2], check_empty().replace(" ", "")[1::2])]))
+    return append_box("".join([chr(int("".join(x), 16)) for x in zip(Text1.get("1.0", END).replace(" ", "")[0::2], Text1.get("1.0", END).replace(" ", "")[1::2])]))
 
 def octal_to_sentence():
-    return append_box("".join([chr(int(x, 8)) for x in check_empty().split()]))
+    return append_box("".join([chr(int(x, 8)) for x in Text1.get("1.0", END).split()]))
 
 def ascii_to_sentence():
-    return append_box("".join([chr(int(x)) for x in check_empty().split()]))
+    return append_box("".join([chr(int(x)) for x in Text1.get("1.0", END).split()]))
 
 def sentence_to_morse():
     sentence_morse = ""
-    for char in check_empty():
+    for char in Text1.get("1.0", END):
         char = unidecode.unidecode(char)
         try:sentence_morse += Morse[char.upper()] + "   "
         except:sentence_morse += "?"
     return append_box(sentence_morse)
 
 def morse_to_sentence():
-    sentence_morse = "".join(Morse_reversed.get(x) for x in check_empty().split())
+    sentence_morse = "".join(Morse_reversed.get(x) for x in Text1.get("1.0", END).split())
     sentence_morse = sentence_morse.lower()
     if not sentence_morse == "":
         sentence_morse = sentence_morse[0].upper() + sentence_morse[1:]
     return append_box(sentence_morse)
 
 def sentence_to_lowercase():
-    return append_box(check_empty().lower()[:-2])
+    return append_box(Text1.get("1.0", END).lower()[:-2])
 
 def sentence_to_uppercase():
-    return append_box(check_empty().upper()[:-2])
+    return append_box(Text1.get("1.0", END).upper()[:-2])
 
 def sentence_reverse():
-    return append_box(check_empty()[-2::-1])
+    return append_box(Text1.get("1.0", END)[-2::-1])
 
 def capitalize_words():
-    temp = " ".join(x[0].upper() + x[1:] for x in check_empty().split(" "))
+    temp = " ".join(x[0].upper() + x[1:] for x in Text1.get("1.0", END).split(" "))
     return append_box("\n".join(x[0].upper() + x[1:] for x in temp[:-2].split("\n")))
 
 def capitalize_sentence():
     def repl_(match):
         return match.group(0).upper()
-    return append_box(re.sub(r'^([a-z])|[\.|\?|\!|\n]\s*([a-z])|\s+([a-z])(?=\.)', repl_, check_empty()[:-2]))
+    return append_box(re.sub(r'^([a-z])|[\.|\?|\!|\n]\s*([a-z])|\s+([a-z])(?=\.)', repl_, Text1.get("1.0", END)[:-2]))
 
 def sentence_randomcase():
     sentence_randomcase = ""
-    for char in check_empty():
+    for char in Text1.get("1.0", END):
         number = random.randint(0, 1)
         if number == 0:sentence_randomcase += char.lower()
         else:sentence_randomcase += char.upper()
@@ -243,7 +240,7 @@ def more_progs():
     os.system("start chrome.exe https://quentium.fr/programs/")
 
 def more_donation():
-    os.system("start chrome.exe https://www.paypal.me/QLienhardt")
+    os.system("start chrome.exe https://www.paypal.me/LienhardtQ")
 
 # ---Separator--- #
 
