@@ -234,13 +234,13 @@ def edit_delall():
 # More menu #
 
 def more_website():
-    os.system("start chrome.exe https://quentium.fr")
+    os.system("start https://quentium.fr/")
 
 def more_progs():
-    os.system("start chrome.exe https://quentium.fr/programs/")
+    os.system("start https://quentium.fr/programs/")
 
 def more_donation():
-    os.system("start chrome.exe https://www.paypal.me/LienhardtQ")
+    os.system("start https://paypal.me/QuentiumYT/")
 
 # ---Separator--- #
 
